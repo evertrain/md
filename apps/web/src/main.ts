@@ -1,5 +1,5 @@
 import { initializeMermaid } from '@md/core/utils'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 
@@ -18,6 +18,10 @@ setupComponents()
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 
 app.mount(`#app`)
+
+/** 供 markdown-cli 等工具通过 CDP 调用主题/渲染；需配合 setActivePinia 使用 */
+window.__MD_CLI__ = { pinia, setActivePinia }

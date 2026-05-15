@@ -1,16 +1,33 @@
 #!/usr/bin/env node
 
-import { readFileSync } from 'fs'
+import { readFileSync } from 'node:fs'
 import getPort from 'get-port'
-import {
-  colors,
-  parseArgv,
-} from './util.js'
+import { fileURLToPath } from 'node:url'
+import { parseArgv } from './util.js'
 import { createServer } from './server.js'
+import { dirname, resolve } from 'node:path'
 
 const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'))
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const arg = parseArgv()
+
+// 检查是否有 copy 命令 (直接检查 process.argv)
+const command = process.argv[2]
+if (command === 'copy') {
+  // 动态导入 copy 模块
+  const { default: copyCommand } = await import('./copy.js')
+  await copyCommand()
+  process.exit(0)
+}
+
+if (command === 'copy-browser') {
+  // 动态导入 copy-browser 模块
+  const { default: copyBrowserCommand } = await import('./copy-browser.js')
+  await copyBrowserCommand()
+  process.exit(0)
+}
 
 async function startServer() {
   try {
@@ -29,12 +46,12 @@ async function startServer() {
 
     app.listen(port, '127.0.0.1', () => {
       console.log(`服务已启动:`)
-      console.log(`打开链接 ${colors.green(`http://127.0.0.1:${port}`)} 即刻使用吧~`)
-      console.log(``)
+      console.log(`打开链接 http://127.0.0.1:${port} 即刻使用吧~`)
+      console.log('')
 
       const { spaceId, clientSecret } = arg
       if (spaceId && clientSecret) {
-        console.log(`${colors.green('✅ 云存储已配置，可通过自定义代码上传图片')}`)
+        console.log(`云存储已配置，可通过自定义代码上传图片`)
       }
     })
 
